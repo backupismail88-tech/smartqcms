@@ -1,31 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, Mail, Shield } from 'lucide-react';
 
-export default function Login() {
-  const { login, user } = useAuth();
+export default function Signup() {
+  const { signup, user } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: ROLES.USER
+  });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // If already logged in, redirect to home
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    const result = await login(username, password);
+    const result = await signup(formData);
+    setLoading(false);
+    
     if (result.success) {
       navigate('/');
     } else {
-      setError(result.message || 'Invalid email or password');
+      setError(result.message || 'Signup failed');
     }
   };
 
@@ -38,16 +46,16 @@ export default function Login() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <h2 className="mt-6 text-center text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-          CSMS Login
+          Join CSMS
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Enter your credentials to access the system
+          Create your account to start managing your resources
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="glass-panel py-8 px-4 sm:px-10 rounded-2xl bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-2xl">
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 rounded-md">
                 <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
@@ -56,19 +64,38 @@ export default function Login() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+                Full Name
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white transition-all outline-none"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email Address
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
                   type="email"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white transition-all outline-none"
-                  placeholder="admin@example.com"
+                  placeholder="john@example.com"
                 />
               </div>
             </div>
@@ -84,32 +111,52 @@ export default function Login() {
                 <input
                   type="password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white transition-all outline-none"
-                  placeholder="admin@123"
+                  placeholder="Min. 8 characters"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Role
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Shield className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white transition-all outline-none appearance-none"
+                >
+                  <option value={ROLES.USER}>User (General)</option>
+                  <option value={ROLES.STAFF}>Staff</option>
+                  <option value={ROLES.ACCOUNTANT}>Accountant</option>
+                  <option value={ROLES.OWNER}>Owner</option>
+                  <option value={ROLES.ADMIN}>Administrator</option>
+                </select>
               </div>
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition-all duration-200 hover:scale-[1.02]"
+                disabled={loading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition-all duration-200 hover:scale-[1.02] disabled:opacity-50"
               >
-                Sign In
+                {loading ? 'Creating Account...' : 'Create Account'}
               </button>
             </div>
             
-            <div className="text-center mt-4 space-y-2">
+            <div className="text-center mt-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Don't have an account?{' '}
-                <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
-                  Create Account
+                Already have an account?{' '}
+                <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                  Sign In
                 </Link>
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Please use the email and password registered in your system.
               </p>
             </div>
           </form>

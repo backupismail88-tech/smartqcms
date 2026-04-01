@@ -11,10 +11,14 @@ export default function ProtectedRoute({ allowedRoles, children }) {
   }
 
   if (allowedRoles && !hasAccess(allowedRoles)) {
-    // Redirect to unauthorized or dashboard if they lack role permissions
-    // In actual app, might show a "Not Authorized" screen.
-    // For prototype, we just push them to Day Book or dashboard.
-    return <Navigate to="/daybook" replace />;
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-black">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 dark:text-gray-400">You do not have permission to view this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return children;

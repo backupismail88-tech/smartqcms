@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
 
@@ -10,9 +11,9 @@ const initialEmployees = [
 ];
 
 const initialDayBook = [
-  { id: 101, date: '2026-03-14', type: 'Income', category: 'Sales', amount: 4500, description: 'Daily counter sales', image: null },
-  { id: 102, date: '2026-03-14', type: 'Expense', category: 'Utilities', amount: 200, description: 'Electricity bill payment', image: 'bill_1.jpg' },
-  { id: 103, date: '2026-03-13', type: 'Income', category: 'Sales', amount: 5200, description: 'High volume day', image: null },
+  { id: 101, txn_date: '2026-03-14', txn_type: 'INCOME', category_id: 101, amount: 4500, description: 'Daily counter sales', reference_no: null },
+  { id: 102, txn_date: '2026-03-14', txn_type: 'EXPENSE', category_id: 501, amount: 200, description: 'Electricity bill payment', reference_no: null },
+  { id: 103, txn_date: '2026-03-13', txn_type: 'INCOME', category_id: 101, amount: 5200, description: 'High volume day', reference_no: null },
 ];
 
 const initialLicenses = [
@@ -27,20 +28,162 @@ export function DataProvider({ children }) {
   const [dayBook, setDayBook] = useState(initialDayBook);
   const [licenses, setLicenses] = useState(initialLicenses);
   const [bills, setBills] = useState([]); // Array of { id, date, url, description, category }
+  const [loading, setLoading] = useState(false);
+  const [ledgerSummary, setLedgerSummary] = useState(null);
+
+  const getHeaders = () => {
+    const token = localStorage.getItem('csmsToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
 
   // --- Actions ---
 
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    if (user) {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      
+      fetchEmployees();
+      fetchDayBook(month, year);
+      fetchLedger(month, year);
+    }
+  }, [user]);
+
   // Day Book
-  const addDayBookEntry = (entry) => {
-    setDayBook(prev => [{ id: Date.now(), ...entry }, ...prev]);
+  const fetchDayBook = async (month, year) => {
+    try {
+      let url = 'http://localhost:3307/api/daybook';
+      const params = new URLSearchParams();
+      if (month) params.append('month', month);
+      if (year) params.append('year', year);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const response = await fetch(url, {
+        headers: getHeaders()
+      });
+      const result = await response.json();
+      if (result.success) {
+        setDayBook(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching daybook:', error);
+    }
   };
-  const deleteDayBookEntry = (id) => {
-    setDayBook(prev => prev.filter(e => e.id !== id));
+
+  const addDayBookEntry = async (entry) => {
+    try {
+      const response = await fetch('http://localhost:3307/api/daybook', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(entry)
+      });
+      const result = await response.json();
+      if (result.success) {
+        fetchDayBook(); // Refresh list
+        fetchLedger();  // Refresh ledger summary
+        return { success: true };
+      }
+      return { success: false, message: result.message };
+    } catch (error) {
+      console.error('Error adding daybook entry:', error);
+      return { success: false, message: 'Server error' };
+    }
+  };
+
+  const updateDayBookEntry = async (id, entry) => {
+    try {
+      const response = await fetch(`http://localhost:3307/api/daybook/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(entry)
+      });
+      const result = await response.json();
+      if (result.success) {
+        fetchDayBook();
+        fetchLedger();
+        return { success: true };
+      }
+      return { success: false, message: result.message };
+    } catch (error) {
+      console.error('Error updating daybook entry:', error);
+      return { success: false, message: 'Server error' };
+    }
+  };
+
+  const deleteDayBookEntry = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3307/api/daybook/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      const result = await response.json();
+      if (result.success) {
+        fetchDayBook();
+        fetchLedger();
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+    }
+  };
+
+  const fetchLedger = async (month, year) => {
+    try {
+      let url = 'http://localhost:3307/api/ledger';
+      const params = new URLSearchParams();
+      if (month) params.append('month', month);
+      if (year) params.append('year', year);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const response = await fetch(url, {
+        headers: getHeaders()
+      });
+      const result = await response.json();
+      if (result.success) {
+        setLedgerSummary(result.summary);
+      }
+    } catch (error) {
+      console.error('Error fetching ledger:', error);
+    }
   };
 
   // Employees
-  const addEmployee = (emp) => {
-    setEmployees(prev => [...prev, { id: Date.now(), ...emp }]);
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch('http://localhost:3307/api/employees', {
+        headers: getHeaders()
+      });
+      const result = await response.json();
+      if (result.success) {
+        setEmployees(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  const addEmployee = async (emp) => {
+    try {
+      const response = await fetch('http://localhost:3307/api/employees', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(emp)
+      });
+      const result = await response.json();
+      if (result.success) {
+        setEmployees(prev => [...prev, result.data]);
+        return { success: true };
+      }
+      return { success: false, message: result.message };
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      return { success: false, message: 'Server error' };
+    }
   };
 
   // Bills
@@ -50,15 +193,13 @@ export function DataProvider({ children }) {
 
   // derived state for Dashboard (Metrics)
   const getDashboardMetrics = () => {
-    const totalIncome = dayBook.filter(e => e.type === 'Income').reduce((sum, e) => sum + e.amount, 0);
-    const totalExpense = dayBook.filter(e => e.type === 'Expense').reduce((sum, e) => sum + e.amount, 0);
     const activeEmployeesCount = employees.filter(e => e.status === 'Active').length;
     const expiredLicensesCount = licenses.filter(l => l.status === 'Expired').length;
     
     return {
-      totalIncome,
-      totalExpense,
-      balance: totalIncome - totalExpense,
+      totalIncome: ledgerSummary?.totalIncome || 0,
+      totalExpense: ledgerSummary?.totalExpense || 0,
+      balance: ledgerSummary?.netBalance || 0,
       activeEmployeesCount,
       expiredLicensesCount
     };
@@ -66,10 +207,11 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider value={{
-      employees, addEmployee,
-      dayBook, addDayBookEntry, deleteDayBookEntry,
+      employees, addEmployee, fetchEmployees,
+      dayBook, addDayBookEntry, updateDayBookEntry, deleteDayBookEntry, fetchDayBook,
       licenses,
       bills, uploadBill,
+      loading, ledgerSummary, fetchLedger,
       getDashboardMetrics
     }}>
       {children}
