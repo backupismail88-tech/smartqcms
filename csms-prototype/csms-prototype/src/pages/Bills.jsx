@@ -5,8 +5,8 @@ import { Receipt, Search, Filter, Upload, FileImageIcon } from 'lucide-react';
 export default function Bills() {
   const { dayBook } = useData();
   
-  // Find all daybook entries that have a receipt/image attached
-  const bills = dayBook.filter(entry => entry.reference_no);
+  // Find all daybook entries that have an image attached
+  const bills = dayBook.filter(entry => entry.image);
 
   return (
     <div className="space-y-6">
@@ -45,36 +45,24 @@ export default function Bills() {
         {bills.map((bill) => (
           <div key={bill.id} className="glass-panel p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col group relative">
             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <a 
-                href={`http://localhost:3307/uploads/${bill.reference_no}`} 
-                target="_blank" rel="noopener noreferrer"
-                className="p-1.5 bg-white/90 dark:bg-gray-800/90 rounded-md shadow-sm text-gray-500 hover:text-blue-600 outline-none"
-              >
+              <button className="p-1.5 bg-white/90 dark:bg-gray-800/90 rounded-md shadow-sm text-gray-500 hover:text-blue-600">
                 <FileImageIcon size={16} />
-              </a>
+              </button>
             </div>
             
             <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 flex items-center justify-center border border-gray-200 dark:border-gray-700 overflow-hidden">
-                {/* Display actual image thumbnail if possible, otherwise icon */}
-                {bill.reference_no.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
-                  <img 
-                    src={`http://localhost:3307/uploads/${bill.reference_no}`} 
-                    alt="receipt" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Receipt size={40} className="text-gray-300 dark:text-gray-600" />
-                )}
+               {/* Simulating an image thumbnail */}
+               <Receipt size={40} className="text-gray-300 dark:text-gray-600" />
             </div>
             
             <div className="flex justify-between items-start mb-1">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate pr-2">Category {bill.category_id}</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate pr-2">{bill.category}</h3>
               <span className="text-sm font-bold text-gray-900 dark:text-gray-200">₹{bill.amount}</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 truncate">{bill.description || 'No description'}</p>
             
             <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center text-xs">
-              <span className="text-gray-500 dark:text-gray-400">{bill.txn_date}</span>
+              <span className="text-gray-500 dark:text-gray-400">{bill.date}</span>
               <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md font-medium">#{bill.id}</span>
             </div>
           </div>

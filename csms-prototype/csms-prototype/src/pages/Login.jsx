@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
 import { Lock, User } from 'lucide-react';
 
@@ -17,15 +17,26 @@ export default function Login() {
     }
   }, [user, navigate]);
 
-  const handleLogin = async (e) => {
+  // Hardcoded credentials as requested
+  const credentials = {
+    'admin': { password: 'admin@123', role: ROLES.ADMIN },
+    'owner': { password: 'owner@123', role: ROLES.OWNER },
+    'accountant': { password: 'accountant@123', role: ROLES.ACCOUNTANT },
+    'staff': { password: 'staff@123', role: ROLES.STAFF }
+  };
+
+  const handleLogin = (e) => {
     e.preventDefault();
     setError('');
-    
-    const result = await login(username, password);
-    if (result.success) {
+
+    const lowerUsername = username.toLowerCase();
+    const userRecord = credentials[lowerUsername];
+
+    if (userRecord && userRecord.password === password) {
+      login(userRecord.role);
       navigate('/');
     } else {
-      setError(result.message || 'Invalid email or password');
+      setError('Invalid username or password');
     }
   };
 
@@ -56,19 +67,19 @@ export default function Login() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+                Username
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white transition-all outline-none"
-                  placeholder="admin@example.com"
+                  placeholder="admin"
                 />
               </div>
             </div>
@@ -101,15 +112,10 @@ export default function Login() {
               </button>
             </div>
             
-            <div className="text-center mt-4 space-y-2">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Don't have an account?{' '}
-                <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
-                  Create Account
-                </Link>
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Please use the email and password registered in your system.
+            <div className="text-center mt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Demo accounts: admin / owner / accountant / staff
+                <br/>Password format: [role]@123
               </p>
             </div>
           </form>

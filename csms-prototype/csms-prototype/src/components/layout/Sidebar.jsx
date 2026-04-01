@@ -18,15 +18,15 @@ export default function Sidebar() {
   const navItems = [
     {
       label: 'Dashboard',
-      path: '/dashboard',
+      path: '/',
       icon: <LayoutDashboard size={20} />,
-      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]
+      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]
     },
     {
       label: 'Day Book',
       path: '/daybook',
       icon: <BookOpen size={20} />,
-      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]
+      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF]
     },
     {
       label: 'Financials',
@@ -34,7 +34,12 @@ export default function Sidebar() {
       icon: <Scale size={20} />,
       roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]
     },
-
+    {
+      label: 'Balance Sheet',
+      path: '/balancesheet',
+      icon: <Wallet size={20} />,
+      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]
+    },
     {
       label: 'Employees',
       path: '/employees',
@@ -51,7 +56,7 @@ export default function Sidebar() {
       label: 'Bills Storage',
       path: '/bills',
       icon: <Receipt size={20} />,
-      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]
+      roles: [ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF]
     }
   ];
 

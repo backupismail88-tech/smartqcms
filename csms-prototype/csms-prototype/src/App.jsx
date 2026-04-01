@@ -7,13 +7,14 @@ import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import Login from './pages/Login';
-import Signup from './pages/Signup';
+
 import Dashboard from './pages/Dashboard';
 import DayBook from './pages/DayBook';
 import Financials from './pages/Financials';
 import Employees from './pages/Employees';
 import Compliance from './pages/Compliance';
 import Bills from './pages/Bills';
+import BalanceSheet from './pages/BalanceSheet';
 
 // Temporary placeholders until pages are built
 const Placeholder = ({ title }) => (
@@ -30,24 +31,20 @@ function App() {
           <Routes>
             {/* Public Route */}
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            
+
             {/* Protected Routes Wrapper */}
             <Route path="/" element={<MainLayout />}>
-              
-              {/* Navigate index to dashboard */}
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              
+
               {/* Dashboard Access */}
-              <Route path="dashboard" element={
-                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]}>
+              <Route index element={
+                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}>
                   <Dashboard />
                 </ProtectedRoute>
               } />
 
               {/* Day Book Access (All roles) */}
               <Route path="daybook" element={
-                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]}>
+                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF]}>
                   <DayBook />
                 </ProtectedRoute>
               } />
@@ -56,6 +53,13 @@ function App() {
               <Route path="financials" element={
                 <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}>
                   <Financials />
+                </ProtectedRoute>
+              } />
+
+              {/* Balance Sheet Access */}
+              <Route path="balancesheet" element={
+                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}>
+                  <BalanceSheet />
                 </ProtectedRoute>
               } />
 
@@ -75,7 +79,7 @@ function App() {
 
               {/* Bills Storage Access */}
               <Route path="bills" element={
-                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF, ROLES.USER]}>
+                <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT, ROLES.STAFF]}>
                   <Bills />
                 </ProtectedRoute>
               } />
